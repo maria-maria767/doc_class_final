@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>{% block title %} Редактирование данных типа прав {% endblock %}</h4>
+<br>
+<form method="post" class="card p-3 mb-2 border-primary" style="max-width: 35rem;">
+    <div class="row mb-3">
+        <label for="number-date" class=" col-form-label">Наименование </label>
+        <input type="text" class="form-control" name="name_access_right" value="{{ access_type['name_access_right'] }}">
+    </div>
+ <div class="row mb-3">
+        <label for="number-date" class="col-form-label">Описание  </label>
+        <input type="text" class="form-control" name="description_rights" value="{{ access_type['description_rights'] }}">
+    </div>
+    <button type="submit" class="btn btn-primary w-50"><i class="bi-file-earmark-binary"></i> Сохранить </button>
+</form>
+
+{% endblock %}

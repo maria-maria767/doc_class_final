@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{% block title %} Подразделения  {% endblock %}</h2>
+
+<div class="container mt-5 mb-3">
+    <div class="row">
+
+        <hr>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Название </th>
+                    <th scope="col">Подчинение</th>
+                </tr>
+            </thead>
+
+            <tbody>
+         {% for department in departments %}
+              <tr>
+                 <td> <a class="link-primary" href="{{ url_for('department', id_department=department['id_department']) }}">
+                        <b> {{ department['name_department'] }} </b>
+                    </a></td>
+                   <td>{{ department['submission'] }} </td>
+                </tr>
+        {% endfor %}
+            </tbody>
+        </table>
+
+
+    </div>
+</div>
+
+{% endblock %}

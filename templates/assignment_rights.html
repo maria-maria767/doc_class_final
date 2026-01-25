@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{% block title %} Назначение прав доступа  {% endblock %}</h2>
+
+<div class="container mt-5 mb-3">
+    <div class="row">
+        <hr>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Дата назначения </th>
+                    <th scope="col">Наименование роли</th>
+                    <th scope="col">Предоставленные права</th>
+                    <th scope="col">Наименование документа</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for assignment_right in assignment_rights %}
+              <tr>
+                 <td> <a class="link-primary" href="{{ url_for('assignment_right', id_assignment_rights=assignment_right['id_assignment_rights']) }}">
+                        <b> {{ assignment_right['date_assignment'] }} </b>
+                 </a></td>
+                  <td>{{ assignment_right['name_role'] }} </td>
+                  <td>{{ assignment_right['name_access_right'] }} </td>
+                  <td>{{ assignment_right['name_document'] }} </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+    </div>
+</div>
+{% endblock %}

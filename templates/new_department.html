@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>{% block title %} Добавление нового подразделения {% endblock %}</h4>
+<br>
+<form method="post" class="card p-3 mb-2 border-primary" style="max-width: 35rem;">
+    <div class="row mb-3">
+        <label for="number-date" class=" col-form-label">Наименование</label>
+        <input type="text" class="form-control" name="name_department" value="{{ request.form['name_department'] }}" placeholder="наименование подразделения">
+    </div>
+     <div class="row mb-3">
+        <label for="number-date" class="col-form-label">Подчинение </label>
+        <input type="text" class="form-control" name="submission" value="{{ request.form['submission'] }}" placeholder="подчинение">
+    </div>
+
+    <button type="submit" class="btn btn-primary w-50"><i class="bi-file-earmark-binary"></i> Добавить подразделение </button>
+</form>
+
+{% endblock %}

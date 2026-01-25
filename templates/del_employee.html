@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>{% block title %} {{ employee['name'] }}  {% endblock %}</h4>
+<span class="badge bg-primary">{{ employee['name_department'] }}</span>
+<span class="badge bg-secondary">{{ employee['position'] }}</span>
+<hr>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">Характеристика</th>
+            <th scope="col">Значение</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Логин</td>
+            <td>{{ employee['login'] }} </td>
+        </tr>
+        <tr>
+            <td>Пароль</td>
+            <td>{{ employee['password'] }} </td>
+        </tr>
+        <tr>
+            <td>E-Mail</td>
+            <td>{{ employee['email'] }} </td>
+        </tr>
+        <tr>
+            <td>Роль</td>
+            <td>{{ employee['name_role'] }} </td>
+        </tr>
+
+    </tbody>
+</table>
+
+<div class="row">
+    <div class="col-auto"  white-space="nowrap";>
+
+    <form method="post"  >
+        <div class="col-auto">
+            <a href="/employee/{{employee['id_employee']}}/del">
+                <button type="submit" class="btn btn-primary"><i class="bi-trash"></i> Подтвердить удаление </button>
+            </a>
+        </div>
+    </form>
+    </div>
+</div>
+
+{% endblock %}
+

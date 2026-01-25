@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>{% block title %} Добавление новой роли пользователей {% endblock %}</h4>
+<br>
+<form method="post" class="card p-3 mb-2 border-primary" style="max-width: 35rem;">
+    <div class="row mb-3">
+        <label for="number-date" class=" col-form-label">Наименование</label>
+        <input type="text" class="form-control" name="name_role" value="{{ request.form['name_role'] }}" placeholder="наименование роли">
+    </div>
+     <div class="row mb-3">
+        <label for="number-date" class="col-form-label">Описание </label>
+        <input type="text" class="form-control" name="description_role" value="{{ request.form['description_role'] }}" placeholder="описание роли">
+    </div>
+
+    <button type="submit" class="btn btn-primary w-50"><i class="bi-file-earmark-binary"></i> Добавить роль </button>
+</form>
+
+{% endblock %}

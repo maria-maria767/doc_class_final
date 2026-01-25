@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{% block title %} Роли пользователей  {% endblock %}</h2>
+
+<div class="container mt-5 mb-3">
+    <div class="row">
+
+        <hr>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Наименование </th>
+                    <th scope="col">Описание</th>
+                </tr>
+            </thead>
+
+            <tbody>
+         {% for role_user in role_users %}
+              <tr>
+                 <td> <a class="link-primary" href="{{ url_for('role_user', id_role=role_user['id_role']) }}">
+                        <b> {{ role_user['name_role'] }} </b>
+                    </a></td>
+                   <td>{{ role_user['description_role'] }} </td>
+                </tr>
+        {% endfor %}
+            </tbody>
+        </table>
+
+
+    </div>
+</div>
+
+{% endblock %}

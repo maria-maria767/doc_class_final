@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>{% block title %} Добавление нового корреспондента {% endblock %}</h4>
+<br>
+<form method="post" class="card p-3 mb-1 border-primary" style="max-width: 35rem;">
+       <div class="row mb-2">
+        <label for="number-date" class="col-sm-6 col-form-label">Наименование</label>
+        <input type="text" class="form-control" name="name_correspondent" value="{{ request.form['name_correspondent']}}" placeholder="наименование">
+        <div class="row mb-2">
+            <label for="number-date" class="col-sm-6 col-form-label" >Тип</label>
+            <select name="selected_id_type_correspondent" class="form-select" >
+                {% for type_correspondent in type_correspondents %}
+                <option value="{{ type_correspondent.id_type_correspondent }}">{{ type_correspondent.type_correspondent }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+
+    <button type="submit" class="btn btn-primary w-50" ><i class="bi-file-earmark-binary"></i> Добавить корреспондента</button>
+</form>
+
+{% endblock %}

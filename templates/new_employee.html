@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>{% block title %} Добавление нового сотрудника {% endblock %}</h4>
+<br>
+<form method="post" class="card p-3 mb-1 border-primary" style="max-width: 35rem;">
+       <div class="row mb-2">
+        <label for="number-date" class="col-sm-6 col-form-label">ФИО</label>
+        <input type="text" class="form-control" name="name" value="{{ request.form['name']}}" placeholder="ФИО">
+        </div>
+        <div class="row mb-2">
+            <label for="number-date" class="col-sm-4 col-form-label"> Учетная запись </label>
+            <div class="col-sm-4">
+            <input type="text" class="form-control" name="login" value="{{ request.form['login']}}" placeholder="логин">
+            </div>
+            <div class="col-sm-4">
+            <input type="text" class="form-control" name="password" value="{{ request.form['password']}}" placeholder="пароль">
+            </div>
+        </div>
+
+        <div class="row mb-2">
+            <label for="number-date" class="col-sm-6 col-form-label" >Подразделение</label>
+            <select name="selected_id_department" class="form-select" >
+                {% for department in departments %}
+                <option value="{{ department.id_department }}">{{ department.name_department }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="row mb-2">
+            <label for="number-date" class="col-sm-4 col-form-label"> Контакты </label>
+            <div class="col-sm-4">
+            <input type="text" class="form-control" name="email" value="{{ request.form['email']}}" placeholder="эл. адрес">
+            </div>
+        </div>
+
+        <div class="row mb-2">
+            <label for="number-date" class="col-sm-6 col-form-label">Должность сотрудника</label>
+            <select name="selected_id_position" class="form-select" >
+                {% for position in positions %}
+                <option value="{{ position.id_position }}">{{ position.position }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="row mb-2">
+            <label for="number-date" class="col-sm-6 col-form-label">Роль сотрудника</label>
+            <select name="selected_id_role" class="form-select" >
+                {% for role in roles %}
+                <option value="{{ role.id_role }}">{{ role.name_role }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+
+    <button type="submit" class="btn btn-primary w-50" ><i class="bi-file-earmark-binary"></i> Добавить сотрудника</button>
+</form>
+
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>{% block title %} {{ role_user['name_role'] }}  {% endblock %}</h4>
+<hr>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">Характеристика</th>
+            <th scope="col">Значение</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Описание</td>
+            <td>{{ role_user['description_role'] }} </td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+<div class="row">
+    <div class="col-auto">
+        <a href="/role_users">
+            <button type="submit" class="btn btn-primary"><i class="bi-skip-backward"></i> Вернуться к списку ролей</button>
+        </a>
+    </div>
+    <div class="col-auto">
+        <a href="/role_user/{{role_user['id_role']}}/update">
+            <button type="submit" class="btn btn-primary"><i class="bi-tools"></i> Редактировать </button>
+        </a>
+    </div>
+    <div class="col-auto">
+        <a href="/role_user/{{role_user['id_role']}}/del">
+            <button type="submit" class="btn btn-primary"><i class="bi-trash"></i> Удалить </button>
+        </a>
+    </div>
+</div>
+
+{% endblock %}

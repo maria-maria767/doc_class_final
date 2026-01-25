@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>{% block title %} Редактирование информации о документе {% endblock %}</h4>
+<br>
+<form method="post" class="card p-3 mb-1 border-primary" style="max-width: 35rem;">
+    <div class="row mb-2">
+        <label for="number-date" class="col-sm-6 col-form-label">Наименование</label>
+        <input type="text" class="form-control" name="name_document" value="{{ document['name_document']}}" placeholder="наименование">
+    </div>
+    <div class="row mb-2">
+        <label for="number-date" class="col-sm-6 col-form-label">Содержание</label>
+        <input type="text" class="form-control" name="text_document" value="{{ document['text_document']}}" placeholder="содержание">
+    </div>
+    <div class="row mb-2">
+        <label for="number-date" class="col-sm-6 col-form-label">Размер, кБ</label>
+        <input type="text" class="form-control" name="size_document" value="{{ document['size_document']}}" placeholder="размер">
+    </div>
+    <div class="row mb-2">
+        <label for="number-date" class="col-sm-6 col-form-label">Ссылка на документ</label>
+        <input type="text" class="form-control" name="link_document" value="{{ document['link_document']}}" placeholder="ссылка на документ">
+    </div>
+
+    <div>
+         <label for="number-date" class="col-sm-6 col-form-label" >Категория документа</label>
+         <select name="selected_id_category_document" class="form-select" >
+             {% for category_document in category_documents %}
+                 <option value="{{ category_document.id_category_document }}" {% if category_document.id_category_document == document.id_category_document %} selected {% endif %}>{{ category_document.category_document }}</option>
+             {% endfor %}
+         </select>
+    </div>
+
+    <div>
+         <label for="number-date" class="col-sm-6 col-form-label" >Корреспондент</label>
+         <select name="selected_id_correspondent" class="form-select" >
+             {% for correspondent in correspondents %}
+                 <option value="{{ correspondent.id_correspondent }}" {% if correspondent.id_correspondent == document.id_correspondent %} selected {% endif %}>{{ correspondent.name_correspondent }}</option>
+             {% endfor %}
+         </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-50" ><i class="bi-file-earmark-binary"></i> Сохранить</button>
+</form>
+
+{% endblock %}

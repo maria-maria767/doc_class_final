@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{% block title %} Типы прав  {% endblock %}</h2>
+
+<div class="container mt-5 mb-3">
+    <div class="row">
+
+        <hr>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Наименование </th>
+                    <th scope="col">Описание</th>
+                </tr>
+            </thead>
+
+            <tbody>
+         {% for access_type in access_types %}
+              <tr>
+                 <td> <a class="link-primary" href="{{ url_for('access_type', id_access_type=access_type['id_access_type']) }}">
+                        <b> {{ access_type['name_access_right'] }} </b>
+                    </a></td>
+                   <td>{{ access_type['description_rights'] }} </td>
+                </tr>
+        {% endfor %}
+            </tbody>
+        </table>
+
+
+    </div>
+</div>
+
+{% endblock %}

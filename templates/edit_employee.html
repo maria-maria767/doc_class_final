@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>{% block title %} Редактирование информации о сотруднике {% endblock %}</h4>
+<br>
+<form method="post" class="card p-3 mb-1 border-primary" style="max-width: 35rem;">
+    <div class="row mb-2">
+        <label for="number-date" class="col-sm-6 col-form-label">ФИО</label>
+        <input type="text" class="form-control" name="name" value="{{ employee['name']}}" placeholder="ФИО">
+        </div>
+        <div class="row mb-2">
+            <label for="number-date" class="col-sm-4 col-form-label"> Учетная запись </label>
+            <div class="col-sm-4">
+            <input type="text" class="form-control" name="login" value="{{ employee['login']}}" placeholder="логин">
+            </div>
+            <div class="col-sm-4">
+            <input type="text" class="form-control" name="password" value="{{ employee['password']}}" placeholder="пароль">
+            </div>
+        </div>
+        <div class="row mb-2">
+            <label for="number-date" class="col-sm-6 col-form-label" >Подразделение</label>
+            <select name="selected_id_department" class="form-select" >
+                {% for department in departments %}
+                <option value="{{ department.id_department }}" {% if department.id_department == employee.id_department %} selected {% endif %}>{{ department.name_department }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="row mb-2">
+            <label for="number-date" class="col-sm-4 col-form-label"> Контакты </label>
+            <div class="col-sm-4">
+            <input type="text" class="form-control" name="email" value="{{ employee['email']}}" placeholder="эл. адрес">
+            </div>
+        </div>
+
+        <div class="row mb-2">
+            <label for="number-date" class="col-sm-6 col-form-label">Должность сотрудника</label>
+            <select name="selected_id_position" class="form-select" >
+                {% for position in positions %}
+                <option value="{{ position.id_position }}" {% if position.id_position == employee.id_position %} selected {% endif %}>{{ position.position }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="row mb-2">
+            <label for="number-date" class="col-sm-6 col-form-label">Роль сотрудника</label>
+            <select name="selected_id_role" class="form-select" >
+                {% for role in roles %}
+                <option value="{{ role.id_role }}" {% if role.id_role == employee.id_role %} selected {% endif %}>{{ role.name_role }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+
+    <button type="submit" class="btn btn-primary w-50" ><i class="bi-file-earmark-binary"></i> Сохранить</button>
+</form>
+
+{% endblock %}

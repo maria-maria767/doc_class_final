@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{% block title %} Корреспонденты  {% endblock %}</h1>
+
+<div class="container mt-5 mb-3">
+    <div class="row">
+        <hr>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Наименование </th>
+                    <th scope="col">Тип</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for correspondent in correspondents %}
+              <tr>
+                 <td> <a class="link-primary" href="{{ url_for('correspondent', id_correspondent=correspondent['id_correspondent']) }}">
+                        <b> {{ correspondent['name_correspondent'] }} </b>
+                 </a></td>
+                  <td>{{ correspondent['type_correspondent'] }} </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+    </div>
+</div>
+{% endblock %}

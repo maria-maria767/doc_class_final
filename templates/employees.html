@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{% block title %} Сотрудники  {% endblock %}</h1>
+
+<div class="container mt-5 mb-3">
+    <div class="row">
+        <hr>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">ФИО </th>
+                    <th scope="col">Логин</th>
+                    <th scope="col">Пароль</th>
+                    <th scope="col">Подразделение</th>
+                    <th scope="col">E-Mail</th>
+                    <th scope="col">Должность</th>
+                    <th scope="col">Роль</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for employee in employees %}
+              <tr>
+                 <td> <a class="link-primary" href="{{ url_for('employee', id_employee=employee['id_employee']) }}">
+                        <b> {{ employee['name'] }} </b>
+                 </a></td>
+                  <td>{{ employee['login'] }} </td>
+                  <td>{{ employee['password'] }} </td>
+                  <td>{{ employee['name_department'] }} </td>
+                  <td>{{ employee['email'] }} </td>
+                  <td>{{ employee['position'] }} </td>
+                  <td>{{ employee['name_role'] }} </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>{% block title %} Авторизация в системе  {% endblock %}</h4>
+<br>
+<form method="post" class="card p-3 mb-2 border-primary" style="max-width: 18rem;">
+    <div class="row mb-3">
+        <label for="data-number" class=" col-form-label">Логин пользователя</label>
+        <select name="selected_login" class="form-select">
+        {% for login in logins %}
+            <option value="{{ login.login }}">{{ login.login }}</option>
+        {% endfor %}
+    </select>
+    </div>
+    <div class="row mb-3">
+        <label for="number-date" class="col-form-label">Пароль пользователя</label>
+        <input type="password" class="form-control" name="password_employee" value="{{ request.form['password_employee'] }}" placeholder="Введите пароль">
+    </div>
+
+   <button type="submit" class="btn btn-primary"><i class="bi-file-earmark-binary"></i> Вход в систему </button>
+</form>
+
+
+{% endblock %}

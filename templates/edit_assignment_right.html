@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>{% block title %} Редактирование информации о назначении прав {% endblock %}</h4>
+<br>
+<form method="post" class="card p-3 mb-1 border-primary" style="max-width: 35rem;">
+    <div class="row mb-2">
+        <label for="number-date" class="col-sm-6 col-form-label">Дата назначения</label>
+        <input type="date" class="form-control" name="date_assignment" value="{{ assignment_right['date_assignment']}}" placeholder="дата назначения">
+    </div>
+        <div class="row mb-2">
+            <label for="number-date" class="col-sm-6 col-form-label" >Наименование роли</label>
+            <select name="selected_id_role" class="form-select" >
+                {% for role_user in role_users %}
+                <option value="{{ role_user.id_role }}" {% if role_user.id_role == assignment_right.id_role %} selected {% endif %}>{{ role_user.name_role }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+       <div class="row mb-2">
+            <label for="number-date" class="col-sm-6 col-form-label" >Предоставленные права</label>
+            <select name="selected_id_access_type" class="form-select" >
+                {% for access_type in access_types %}
+                <option value="{{ access_type.id_access_type }}" {% if access_type.id_access_type == assignment_right.id_access_type %} selected {% endif %}>{{ access_type.name_access_right }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+    <div class="row mb-2">
+            <label for="number-date" class="col-sm-6 col-form-label" >Наименование документа</label>
+            <select name="selected_id_document" class="form-select" >
+                {% for document in documents %}
+                <option value="{{ document.id_document }}" {% if document.id_document == assignment_right.id_document %} selected {% endif %}>{{ document.name_document }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+
+
+
+
+    <button type="submit" class="btn btn-primary w-50" ><i class="bi-file-earmark-binary"></i> Сохранить</button>
+</form>
+
+{% endblock %}
