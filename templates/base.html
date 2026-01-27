@@ -26,6 +26,7 @@
                     </a>
                     <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start"
                         id="menu">
+                        {% if user_rights == 1 %}
                          <li>
                             <a href="/departments" class="nav-link px-0 align-middle text-white">
                             <i class="fs-4 bi-people"></i> <span class="ms-1 d-none d-sm-inline">Подразделения</span></a>
@@ -39,13 +40,16 @@
                             <i class="fs-4 bi-person-workspace"></i> <span class="ms-1 d-none d-sm-inline">Роли пользователей</span></a>
                         </li>
                         <li>
-                            <a href="/correspondents" class="nav-link px-0 align-middle text-white">
-                            <i class="fs-4 bi-stack"></i> <span class="ms-1 d-none d-sm-inline">Корреспонденты</span></a>
-                        </li>
-                        <li>
                             <a href="/access_types" class="nav-link px-0 align-middle text-white">
                             <i class="fs-4 bi-person-vcard"></i> <span class="ms-1 d-none d-sm-inline">Типы прав</span></a>
                         </li>
+                        {% endif %}
+                        {% if ((user_rights == 1) or (user_rights == 2)) %}
+                        <li>
+                            <a href="/correspondents" class="nav-link px-0 align-middle text-white">
+                            <i class="fs-4 bi-person-fill-gear"></i> <span class="ms-1 d-none d-sm-inline">Корреспонденты</span></a>
+                        </li>
+
                         <li>
                             <a href="/documents" class="nav-link px-0 align-middle text-white">
                             <i class="fs-4 bi-stack"></i> <span class="ms-1 d-none d-sm-inline">Документы</span></a>
@@ -63,21 +67,28 @@
                             <a href="/assignment_rights" class="nav-link px-0 align-middle text-white">
                             <i class="fs-4 bi-person-vcard-fill"></i> <span class="ms-1 d-none d-sm-inline">Назначение прав доступа</span></a>
                         </li>
+                        {% endif %}
+                        {% if ((user_rights == 1) or (user_rights == 2)) %}
                         <li class="dropdown pb-4">
                             <a href="#" class="nav-link px-0 align-middle text-white dropdown-toggle"
                                 id="dropdownCreate" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fs-4 bi-plus-circle"></i> <span class="ms-1 d-none d-sm-inline">Добавить </span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-primary text-small shadow">
+                                {% if user_rights == 1 %}
                                 <li><a class="dropdown-item" href="/new_department">подразделение</a></li>
                                 <li><a class="dropdown-item" href="/new_employee">сотрудника</a></li>
                                 <li><a class="dropdown-item" href="/new_role_user">роль пользователя</a></li>
-                                <li><a class="dropdown-item" href="/new_correspondent">корреспондента</a></li>
                                 <li><a class="dropdown-item" href="/new_access_type">тип прав</a></li>
+                                {% endif %}
+                                {% if ((user_rights == 1) or (user_rights == 2)) %}
+                                <li><a class="dropdown-item" href="/new_correspondent">корреспондента</a></li>
                                 <li><a class="dropdown-item" href="/new_assignment_right">назначить права доступа</a></li>
+                                {% endif %}
                             </ul>
                         </li>
-
+                        {% endif %}
+                        {% if user_rights == 4 %}
                         <li class="dropdown pb-4">
                             <a href="#" class="nav-link px-0 align-middle text-white dropdown-toggle"
                                 id="dropdownCreate" data-bs-toggle="dropdown" aria-expanded="false">
@@ -89,12 +100,13 @@
                                 <li><a class="dropdown-item" href="/rep_responses_request">Сводные данные по обработанным заявкам</a></li>
                             </ul>
                         </li>
+                        {% endif %}
                     </ul>
                     <hr>
                     <div class="dropdown pb-4">
                         <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
                             id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span class="d-none d-sm-inline mx-1">Суворов А.К.</span>
+                            <span class="d-none d-sm-inline mx-1">{{ user_name }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-primary text-small shadow">
                             <li><a class="dropdown-item" href="#">Настройки</a></li>

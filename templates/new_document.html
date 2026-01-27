@@ -2,14 +2,14 @@
 {% block content %}
 <h4>{% block title %} Добавление нового документа {% endblock %}</h4>
 <br>
-<form method="post" class="card p-3 mb-1 border-primary" style="max-width: 35rem;">
+<form method="post" enctype="multipart/form-data" class="card p-3 mb-1 border-primary" style="max-width: 35rem;">
        <div class="row mb-2">
         <label for="number-date" class="col-sm-6 col-form-label">Наименование</label>
         <input type="text" class="form-control" name="name_document" value="{{ request.form['name_document']}}" placeholder="наименование">
        </div>
        <div class="row mb-2">
         <label for="number-date" class="col-sm-6 col-form-label">Содержание</label>
-        <input type="file" class="form-control" name="text_document" value="{{ request.form['text_document']}}" placeholder="содержание">
+        <input type="file" class="form-control" name="text_document" value="{{ request.form['text_document']}}" accept=".txt" placeholder="содержание">
        </div>
        <div class="row mb-2">
         <label for="number-date" class="col-sm-6 col-form-label">Размер, кБ</label>

@@ -1,11 +1,19 @@
 import sqlite3
-from flask import Flask, render_template, redirect, request, flash, send_from_directory
+#from keras.models import load_model
+#import tensorflow as tf
+from flask import Flask, render_template, redirect, request, flash, request, send_from_directory
 from werkzeug.exceptions import abort
+from werkzeug.utils import secure_filename
 import os
 import pprint
 # from docx import Document
 
 app = Flask(__name__)
+#===Глобальные переменные
+USER_NAME = '111'   # логин пользователя
+USER_RIGHTS = 3     # права пользователя
+
+
 app.config['SECRET_KEY'] = b'my)secret)key'
 UPLOAD_FOLDER = 'requests'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -19,6 +27,8 @@ def get_db_connection():
 #===Стартовая страница
 @app.route('/')
 def index():
+    global USER_RIGHTS
+    USER_RIGHTS = 3
     return redirect("/auth")
 
 
@@ -26,8 +36,15 @@ def index():
 @app.route('/auth', methods=('GET', 'POST'))
 def auth():
     if request.method == 'POST':
+        global USER_NAME
+        global USER_RIGHTS
         try:
             login_employee = str(request.form['selected_login'])
+            USER_NAME = login_employee
+            if login_employee == 'korutov':
+                USER_RIGHTS = 1
+            else:
+                USER_RIGHTS = 2
             password_employee = str(request.form['password_employee'])
         except ValueError:
             flash('Введены некорректные значения')
@@ -40,7 +57,7 @@ def auth():
             flash('Введен неправильный логин и(или) пароль пользователя! Повторите ввод')
             return redirect(f'/auth')
         else:
-            return redirect(f'/departments')
+            return redirect(f'/correspondents')
 
     conn = get_db_connection()
     pos = conn.execute("""SELECT * FROM employees
@@ -85,7 +102,7 @@ def employees():
                 (employees.id_role = role_users.id_role)
             """).fetchall()
     conn.close()
-    return render_template('employees.html', employees=pos)
+    return render_template('employees.html', employees=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 #===Получение одного сотрудника из БД
 def get_employee(item_id):
@@ -108,7 +125,7 @@ def get_employee(item_id):
 @app.route('/employees/<int:id_employee>')
 def employee(id_employee):
     pos = get_employee(id_employee)
-    return render_template('employee.html', employee=pos)
+    return render_template('employee.html', employee=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 #===Добавление нового сотрудника
 @app.route('/new_employee', methods=('GET', 'POST'))
@@ -149,7 +166,7 @@ def new_employee():
     posp = conn.execute("""SELECT * FROM positions""").fetchall()
     posr = conn.execute("""SELECT * FROM role_users""").fetchall()
     conn.close()
-    return render_template('new_employee.html', departments=posd, positions=posp, roles=posr)
+    return render_template('new_employee.html', departments=posd, positions=posp, roles=posr, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 
 @app.route('/employee/<int:id_employee>/del', methods=('GET', 'POST'))
@@ -165,7 +182,7 @@ def del_employee(id_employee):
 
     # отрисовка формы
     pos = get_employee(id_employee)
-    return render_template('del_employee.html', employee=pos)
+    return render_template('del_employee.html', employee=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 @app.route('/employee/<int:id_employee>/update', methods=('GET', 'POST'))
 #===Редактирование сотрудника
@@ -207,7 +224,7 @@ def edit_employee(id_employee):
     #for pp in pos:
     #    tt=pp.birthday
 
-    return render_template('edit_employee.html', employee=pos, departments=posd, positions=posp, roles=posr)
+    return render_template('edit_employee.html', employee=pos, departments=posd, positions=posp, roles=posr, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 ###############
 ###############
@@ -224,7 +241,7 @@ def departments():
     pos = conn.execute("""SELECT  * FROM departments
             """).fetchall()
     conn.close()
-    return render_template('departments.html', departments=pos)
+    return render_template('departments.html', departments=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 #===Получение одного подразделения из БД
 def get_department(item_id):
@@ -244,7 +261,7 @@ def get_department(item_id):
 def department(id_department):
 
     pos = get_department(id_department)
-    return render_template('department.html', department=pos)
+    return render_template('department.html', department=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 @app.route('/new_department', methods=('GET', 'POST'))
 #===Добавление нового подразделения
@@ -278,7 +295,7 @@ def new_department():
     conn = get_db_connection()
     pos = conn.execute("""SELECT * FROM departments""").fetchall()
     conn.close()
-    return render_template('new_department.html', departments=pos)
+    return render_template('new_department.html', departments=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 @app.route('/department/<int:id_department>/del', methods=('GET', 'POST'))
 #===Удаление подразделения
@@ -293,7 +310,7 @@ def del_department(id_department):
 
     # отрисовка формы
     pos = get_department(id_department)
-    return render_template('del_department.html', department=pos)
+    return render_template('del_department.html', department=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 @app.route('/department/<int:id_department>/update', methods=('GET', 'POST'))
 #===Редактирование подразделения
@@ -322,7 +339,7 @@ def edit_department(id_department):
                 return redirect('/departments')
     # отрисовка формы
     pos = get_department(id_department)
-    return render_template('edit_department.html', department=pos)
+    return render_template('edit_department.html', department=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 
 ###############
@@ -340,7 +357,7 @@ def role_users():
     pos = conn.execute("""SELECT  * FROM role_users
             """).fetchall()
     conn.close()
-    return render_template('role_users.html', role_users=pos)
+    return render_template('role_users.html', role_users=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 #===Получение одной роли пользователей из БД
 def get_role_user(item_id):
@@ -360,7 +377,7 @@ def get_role_user(item_id):
 def role_user(id_role):
 
     pos = get_role_user(id_role)
-    return render_template('role_user.html', role_user=pos)
+    return render_template('role_user.html', role_user=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 @app.route('/new_role_user', methods=('GET', 'POST'))
 #===Добавление новой роли пользователей
@@ -394,7 +411,7 @@ def new_role_user():
     conn = get_db_connection()
     pos = conn.execute("""SELECT * FROM role_users""").fetchall()
     conn.close()
-    return render_template('new_role_user.html', role_users=pos)
+    return render_template('new_role_user.html', role_users=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 @app.route('/role_user/<int:id_role>/del', methods=('GET', 'POST'))
 #===Удаление роли пользователей
@@ -409,7 +426,7 @@ def del_role_user(id_role):
 
     # отрисовка формы
     pos = get_role_user(id_role)
-    return render_template('del_role_user.html', role_user=pos)
+    return render_template('del_role_user.html', role_user=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 @app.route('/role_user/<int:id_role>/update', methods=('GET', 'POST'))
 #===Редактирование роли пользователей
@@ -438,7 +455,7 @@ def edit_role_user(id_role):
                 return redirect('/role_users')
     # отрисовка формы
     pos = get_role_user(id_role)
-    return render_template('edit_role_user.html', role_user=pos)
+    return render_template('edit_role_user.html', role_user=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 ###############
 ###############
@@ -455,7 +472,7 @@ def access_types():
     pos = conn.execute("""SELECT  * FROM access_types
             """).fetchall()
     conn.close()
-    return render_template('access_types.html', access_types=pos)
+    return render_template('access_types.html', access_types=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 #===Получение одного типа прав из БД
 def get_access_type(item_id):
@@ -475,7 +492,7 @@ def get_access_type(item_id):
 def access_type(id_access_type):
 
     pos = get_access_type(id_access_type)
-    return render_template('access_type.html', access_type=pos)
+    return render_template('access_type.html', access_type=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 @app.route('/new_access_type', methods=('GET', 'POST'))
 #===Добавление нового типа прав
@@ -509,7 +526,7 @@ def new_access_type():
     conn = get_db_connection()
     pos = conn.execute("""SELECT * FROM access_types""").fetchall()
     conn.close()
-    return render_template('new_access_type.html', access_types=pos)
+    return render_template('new_access_type.html', access_types=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 @app.route('/access_type/<int:id_access_type>/del', methods=('GET', 'POST'))
 #===Удаление типа прав
@@ -524,7 +541,7 @@ def del_access_type(id_access_type):
 
     # отрисовка формы
     pos = get_access_type(id_access_type)
-    return render_template('del_access_type.html', access_type=pos)
+    return render_template('del_access_type.html', access_type=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 @app.route('/access_type/<int:id_access_type>/update', methods=('GET', 'POST'))
 #===Редактирование типа прав
@@ -553,7 +570,7 @@ def edit_access_type(id_access_type):
                 return redirect('/access_types')
     # отрисовка формы
     pos = get_access_type(id_access_type)
-    return render_template('edit_access_type.html', access_type=pos)
+    return render_template('edit_access_type.html', access_type=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 ###############
 ###############
@@ -569,7 +586,7 @@ def correspondents():
                 WHERE (correspondents.id_type_correspondent = type_correspondents.id_type_correspondent)
             """).fetchall()
     conn.close()
-    return render_template('correspondents.html', correspondents=pos)
+    return render_template('correspondents.html', correspondents=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 #===Получение одного корреспондента из БД
 def get_correspondent(item_id):
@@ -589,7 +606,7 @@ def get_correspondent(item_id):
 @app.route('/correspondents/<int:id_correspondent>')
 def correspondent(id_correspondent):
     pos = get_correspondent(id_correspondent)
-    return render_template('correspondent.html', correspondent=pos)
+    return render_template('correspondent.html', correspondent=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 #===Добавление нового корреспондента
 @app.route('/new_correspondent', methods=('GET', 'POST'))
@@ -623,7 +640,7 @@ def new_correspondent():
     conn = get_db_connection()
     post = conn.execute("""SELECT * FROM type_correspondents""").fetchall()
     conn.close()
-    return render_template('new_correspondent.html', type_correspondents=post)
+    return render_template('new_correspondent.html', type_correspondents=post, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 
 @app.route('/correspondent/<int:id_correspondent>/del', methods=('GET', 'POST'))
@@ -639,7 +656,7 @@ def del_correspondent(id_correspondent):
 
     # отрисовка формы
     pos = get_correspondent(id_correspondent)
-    return render_template('del_correspondent.html', correspondent=pos)
+    return render_template('del_correspondent.html', correspondent=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 @app.route('/correspondent/<int:id_correspondent>/update', methods=('GET', 'POST'))
 #===Редактирование корреспондента
@@ -674,7 +691,7 @@ def edit_correspondent(id_correspondent):
     #for pp in pos:
     #    tt=pp.birthday
 
-    return render_template('edit_correspondent.html', correspondent=pos, type_correspondents=post)
+    return render_template('edit_correspondent.html', correspondent=pos, type_correspondents=post, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 
 
@@ -694,7 +711,7 @@ def documents():
                 (documents.id_correspondent = correspondents.id_correspondent)
             """).fetchall()
     conn.close()
-    return render_template('documents.html', documents=pos)
+    return render_template('documents.html', documents=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 #===Получение одного документа из БД
 def get_document(item_id):
@@ -717,7 +734,7 @@ def get_document(item_id):
 @app.route('/documents/<int:id_document>')
 def document(id_document):
     pos = get_document(id_document)
-    return render_template('document.html', document=pos)
+    return render_template('document.html', document=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 #===Добавление нового документа
 @app.route('/new_document', methods=('GET', 'POST'))
@@ -727,9 +744,18 @@ def new_document():
         # добавление нового документа в БД после заполнения формы
         try:
             name_document = request.form['name_document']
-            text_document = request.form['text_document']
-            size_document = request.form['size_document']
-            link_document = request.form['link_document']
+            #===разбор загруженного файла
+            if 'text_document' in request.files:
+                file = request.files['text_document']
+                if file.filename != '':
+                    # Получение имени файла
+                    filename = secure_filename(file.filename)
+                    # Чтение файла
+                    SizeOfFile = request.content_length
+                    TextOfFile = file.read().decode('utf-8')
+            text_document = TextOfFile
+            size_document = SizeOfFile
+            link_document = filename
             id_category_document = request.form['selected_id_category_document']
             id_correspondent = request.form['selected_id_correspondent']
 
@@ -756,7 +782,7 @@ def new_document():
     postcd = conn.execute("""SELECT * FROM category_documents""").fetchall()
     postc = conn.execute("""SELECT * FROM correspondents""").fetchall()
     conn.close()
-    return render_template('new_document.html', category_documents=postcd, correspondents=postc)
+    return render_template('new_document.html', category_documents=postcd, correspondents=postc, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 
 @app.route('/document/<int:id_document>/del', methods=('GET', 'POST'))
@@ -773,7 +799,46 @@ def del_document(id_document):
     # отрисовка формы
     pos = get_document(id_document)
     tt=pos['link_document']
-    return render_template('del_document.html', document=pos)
+    return render_template('del_document.html', document=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
+
+@app.route('/document/<int:id_document>/check', methods=('GET', 'POST'))
+#===Изменение категории документа
+def check_document(id_document):
+    if request.method == 'POST':
+        global model
+        #model = load_model('workmodel.h5')
+        # Required for model to work
+        global graph
+        #graph = tf.get_default_graph()
+
+        doc = get_document(id_document)
+        name_document = doc['name_document']
+        text_document = doc['text_document']
+        size_document = doc['size_document']
+        link_document = doc['link_document']
+        id_correspondent = doc['id_correspondent']
+        try:
+            with open('output.txt', 'r', encoding='utf-8') as f:
+                content = f.read()
+        except FileNotFoundError:
+            content = "Файл не найден"
+        id_category_document = int(content)
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE 'documents' set 'name_document'=?, 'text_document'=?, 'size_document'=?, 'link_document'=?, 'id_category_document'=?,'id_correspondent'=?  WHERE id_document = ?",
+            (name_document, text_document, size_document, link_document, id_category_document, id_correspondent,
+             id_document))
+        conn.commit()
+        conn.close()
+        return redirect('/documents')
+
+    # отрисовка формы
+    pos = get_document(id_document)
+    tt=pos['link_document']
+    return render_template('check_document.html', document=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
+
+
 
 @app.route('/document/<int:id_document>/update', methods=('GET', 'POST'))
 #===Редактирование локумента
@@ -811,7 +876,7 @@ def edit_document(id_document):
     posc = conn.execute("""SELECT * FROM correspondents""").fetchall()
     conn.close()
 
-    return render_template('edit_document.html', document=pos, category_documents=poscd, correspondents=posc)
+    return render_template('edit_document.html', document=pos, category_documents=poscd, correspondents=posc, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 
 
@@ -830,7 +895,7 @@ def assignment_rights():
                       (assignment_rights.id_document=documents.id_document)
             """).fetchall()
     conn.close()
-    return render_template('assignment_rights.html', assignment_rights=pos)
+    return render_template('assignment_rights.html', assignment_rights=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 #===Получение одного назначения прав доступа из БД
 def get_assignment_right(item_id):
@@ -855,7 +920,7 @@ def get_assignment_right(item_id):
 @app.route('/assignment_rights/<int:id_assignment_rights>')
 def assignment_right(id_assignment_rights):
     pos = get_assignment_right(id_assignment_rights)
-    return render_template('assignment_right.html', assignment_right=pos)
+    return render_template('assignment_right.html', assignment_right=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 #===Добавление нового назначения прав
 @app.route('/new_assignment_right', methods=('GET', 'POST'))
@@ -893,7 +958,7 @@ def new_assignment_right():
     posat = conn.execute("""SELECT * FROM access_types""").fetchall()
     posd = conn.execute("""SELECT * FROM documents""").fetchall()
     conn.close()
-    return render_template('new_assignment_right.html', role_users=posru, access_types=posat, documents=posd)
+    return render_template('new_assignment_right.html', role_users=posru, access_types=posat, documents=posd, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 
 @app.route('/assignment_right/<int:id_assignment_rights>/del', methods=('GET', 'POST'))
@@ -909,7 +974,7 @@ def del_assignment_right(id_assignment_rights):
 
     # отрисовка формы
     pos = get_assignment_right(id_assignment_rights)
-    return render_template('del_assignment_right.html', assignment_right=pos)
+    return render_template('del_assignment_right.html', assignment_right=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 @app.route('/assignment_right/<int:id_assignment_rights>/update', methods=('GET', 'POST'))
 #===Редактирование назначения прав
@@ -946,7 +1011,7 @@ def edit_assignment_right(id_assignment_rights):
     posd = conn.execute("""SELECT * FROM documents""").fetchall()
     conn.close()
 
-    return render_template('edit_assignment_right.html', assignment_right=pos, role_users=posru, access_types=posat, documents=posd)
+    return render_template('edit_assignment_right.html', assignment_right=pos, role_users=posru, access_types=posat, documents=posd, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 
 
