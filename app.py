@@ -4,6 +4,7 @@ import sqlite3
 from flask import Flask, render_template, redirect, request, flash, request, send_from_directory
 from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
+from utils import tf_functions as tf
 import os
 import pprint
 # from docx import Document
@@ -12,6 +13,7 @@ app = Flask(__name__)
 #===Глобальные переменные
 USER_NAME = '111'   # логин пользователя
 USER_RIGHTS = 3     # права пользователя
+TESTED_DOCS = []    # список протестированных документов по id
 
 
 app.config['SECRET_KEY'] = b'my)secret)key'
@@ -817,20 +819,50 @@ def check_document(id_document):
         size_document = doc['size_document']
         link_document = doc['link_document']
         id_correspondent = doc['id_correspondent']
-        try:
-            with open('output.txt', 'r', encoding='utf-8') as f:
-                content = f.read()
-        except FileNotFoundError:
-            content = "Файл не найден"
-        id_category_document = int(content)
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "UPDATE 'documents' set 'name_document'=?, 'text_document'=?, 'size_document'=?, 'link_document'=?, 'id_category_document'=?,'id_correspondent'=?  WHERE id_document = ?",
-            (name_document, text_document, size_document, link_document, id_category_document, id_correspondent,
-             id_document))
-        conn.commit()
-        conn.close()
+        #try:
+        #    with open('output.txt', 'r', encoding='utf-8') as f:
+        #        content = f.read()
+        #except FileNotFoundError:
+        #    content = "Файл не найден"
+
+        global TESTED_DOCS
+        if (id_document in TESTED_DOCS):
+            flash('Для данного документа рекомендуемая категория уже была определена!')
+        else:
+            #===определение категории документа
+            model = tf.load_model("workmodel.h5")
+            doc_tensor = tf.tensor_create(text_document)
+            results = tf.predict(model,doc_tensor)
+            res_id_category = results.index(max(results))
+            if res_id_category == 0:
+                category_text = "Конфиденциальный"
+            if res_id_category == 1:
+                category_text = "Внутренний"
+            if res_id_category == 2:
+                category_text = "Публичный"
+            if res_id_category == 3:
+                category_text = "Ограниченного доступа"
+            flash('Результаты анализа документа:')
+            ppp = str(round(results[0], 3))
+            res_msg = "Конфиденциальный: " + str(round(results[0],3)) + "; "
+            res_msg += "Внутренний: " + str(round(results[1], 3)) + "; "
+            res_msg += "Публичный: " + str(round(results[2], 3)) + "; "
+            res_msg += "Ограниченного доступа: " + str(round(results[3], 3)) + "."
+            flash(res_msg)
+            res_msg = "Выбрана категория: " + category_text
+            flash(res_msg)
+
+            TESTED_DOCS.append(id_document)
+
+            id_category_document = res_id_category + 1
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE 'documents' set 'name_document'=?, 'text_document'=?, 'size_document'=?, 'link_document'=?, 'id_category_document'=?,'id_correspondent'=?  WHERE id_document = ?",
+                (name_document, text_document, size_document, link_document, id_category_document, id_correspondent,
+                id_document))
+            conn.commit()
+            conn.close()
         return redirect('/documents')
 
     # отрисовка формы
