@@ -2,6 +2,7 @@ import sqlite3
 #from keras.models import load_model
 #import tensorflow as tf
 from flask import Flask, render_template, redirect, request, flash, request, send_from_directory
+from flask import request
 from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
 from utils import tf_functions as tf
@@ -14,6 +15,7 @@ app = Flask(__name__)
 USER_NAME = '111'   # логин пользователя
 USER_RIGHTS = 3     # права пользователя
 TESTED_DOCS = []    # список протестированных документов по id
+ID_OWNER = 0        # id владельца сессии
 
 
 app.config['SECRET_KEY'] = b'my)secret)key'
@@ -59,6 +61,8 @@ def auth():
             flash('Введен неправильный логин и(или) пароль пользователя! Повторите ввод')
             return redirect(f'/auth')
         else:
+            global ID_OWNER
+            ID_OWNER = item[0]['id_employee']
             return redirect(f'/correspondents')
 
     conn = get_db_connection()
@@ -1055,6 +1059,27 @@ def edit_assignment_right(id_assignment_rights):
 def page_not_found(e):
     return render_template('404.html'), 404
 
+#===Функция выхода из приложения
+@app.route('/shutdown', methods=['GET', 'POST'])
+def shutdown():
+    global USER_NAME
+    global USER_RIGHTS
+    global TESTED_DOCS
+    global ID_OWNER
+    USER_NAME = ''  # логин пользователя
+    USER_RIGHTS = 3  # права пользователя
+    TESTED_DOCS = []  # список протестированных документов по id
+    ID_OWNER = 0      # id владельца сессии
+    return redirect('/auth')
+
+#===Функция вывода профиля пользователя
+@app.route('/profile', methods=['GET', 'POST'])
+def profile():
+    global ID_OWNER
+    global USER_NAME
+    global USER_RIGHTS
+    pos = get_employee(ID_OWNER)
+    return render_template('employee.html', employee=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 if __name__ == '__main__':
     app.run()
