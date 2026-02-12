@@ -5,3 +5,4 @@ pandas
 tqdm
 docx
 werkzeug
+python-docx
