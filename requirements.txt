@@ -4,3 +4,5 @@ numpy
 pandas
 tqdm
 docx
+werkzeug.exceptions
+werkzeug.utils 
