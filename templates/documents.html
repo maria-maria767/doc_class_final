@@ -11,7 +11,7 @@
                     <th scope="col">Наименование </th>
                     <th scope="col">Содержание</th>
                     <th scope="col">Размер, кБ</th>
-                    <th scope="col">Ссылка на документ</th>
+                    {# <th scope="col">Ссылка на документ</th> #}
                     <th scope="col">Категория документа</th>
                     <th scope="col">Корреспондент</th>
                 </tr>
@@ -19,14 +19,16 @@
             <tbody>
             {% for document in documents %}
               <tr>
-                 <td> <a class="link-primary" href="{{ url_for('document', id_document=document['id_document']) }}">
-                        <b> {{ document['name_document'] }} </b>
-                 </a></td>
-                  <td>{{ document['text_document'] }} </td>
-                  <td>{{ document['size_document'] }} </td>
-                  <td> <a class="link-secondary">{{ document['link_document'] }}</a> </td>
-                  <td>{{ document['category_document'] }} </td>
-                  <td>{{ document['name_correspondent'] }} </td>
+                 <td>
+                     <a class="link-primary" href="{{ url_for('document', id_document=document['id_document']) }}">
+                        <b>{{ document['name_document'] }}</b>
+                     </a>
+                 </td>
+                  <td>{{ document['text_document'] }}</td>
+                  <td>{{ document['size_document'] }}</td>
+                  {# <td><a class="link-secondary">{{ document['link_document'] }}</a></td> #}
+                  <td>{{ document['category_document'] }}</td>
+                  <td>{{ document['name_correspondent'] }}</td>
                 </tr>
             {% endfor %}
             </tbody>

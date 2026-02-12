@@ -9,17 +9,8 @@
        </div>
        <div class="row mb-2">
         <label for="number-date" class="col-sm-6 col-form-label">Содержание</label>
-        <input type="file" class="form-control" name="text_document" value="{{ request.form['text_document']}}" accept=".txt" placeholder="содержание">
+        <input type="file" class="form-control" name="text_document" value="{{ request.form['text_document']}}" accept=".txt,.docx" placeholder="содержание">
        </div>
-       <div class="row mb-2">
-        <label for="number-date" class="col-sm-6 col-form-label">Размер, кБ</label>
-        <input type="text" class="form-control" name="size_document" value="{{ request.form['size_document']}}" placeholder="размер">
-       </div>
-       <div class="row mb-2">
-        <label for="number-date" class="col-sm-6 col-form-label">Ссылка на документ</label>
-        <input type="text" class="form-control" name="link_document" value="{{ request.form['link_document']}}" placeholder="ссылка на документ">
-       </div>
-
        <div class="row mb-2">
             <label for="number-date" class="col-sm-6 col-form-label" >Категория документа</label>
             <select name="selected_id_category_document" class="form-select" >

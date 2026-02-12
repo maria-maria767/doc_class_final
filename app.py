@@ -1,6 +1,8 @@
 import sqlite3
+import io
 #from keras.models import load_model
 #import tensorflow as tf
+from docx import Document
 from flask import Flask, render_template, redirect, request, flash, request, send_from_directory
 from flask import request
 from werkzeug.exceptions import abort
@@ -8,7 +10,9 @@ from werkzeug.utils import secure_filename
 from utils import tf_functions as tf
 import os
 import pprint
-# from docx import Document
+from pathlib import Path
+import uuid
+
 
 app = Flask(__name__)
 #===Глобальные переменные
@@ -16,13 +20,93 @@ USER_NAME = '111'   # логин пользователя
 USER_RIGHTS = 3     # права пользователя
 TESTED_DOCS = []    # список протестированных документов по id
 ID_OWNER = 0        # id владельца сессии
-
+ALLOWED_EXTENSIONS = {"txt", "docx"}
 
 app.config['SECRET_KEY'] = b'my)secret)key'
 UPLOAD_FOLDER = 'requests'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-#===Получение соединения с БД
+def _get_ext_from_original(filename: str) -> str:
+    # "file.DOCX " -> "docx"
+    return Path((filename or "").strip()).suffix.lower().lstrip(".")
+def _make_safe_filename(original_filename: str) -> str:
+    """
+    Делает безопасное имя файла для хранения/БД.
+    Если имя на кириллице и secure_filename "убил" его (например, оставил 'docx'),
+    создаём уникальное имя вида doc_<uuid>.docx
+    """
+    ext = _get_ext_from_original(original_filename)  # без точки
+    ext_with_dot = f".{ext}" if ext else ""
+
+    safe = secure_filename(original_filename)
+
+    # secure_filename может вернуть "docx" (без точки), или пусто, или без расширения
+    if not safe or Path(safe).suffix.lower() != ext_with_dot:
+        safe = f"doc_{uuid.uuid4().hex}{ext_with_dot}"
+
+    return safe
+
+
+def _docx_to_text(doc: Document) -> str:
+    parts = []
+
+    # Параграфы
+    for p in doc.paragraphs:
+        t = (p.text or "").strip()
+        if t:
+            parts.append(t)
+
+    # Таблицы (часто текст лежит здесь)
+    for table in doc.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                t = (cell.text or "").strip()
+                if t:
+                    parts.append(t)
+
+    return "\n".join(parts).strip()
+
+
+def _extract_text_from_upload(file_storage):
+    """
+    Возвращает: text_document, size_document, link_document (безопасное имя)
+    file_storage — request.files['text_document']
+    """
+    original_name = file_storage.filename or ""
+    ext = _get_ext_from_original(original_name)
+
+    if ext not in ALLOWED_EXTENSIONS:
+        raise ValueError("Разрешены только файлы .txt и .docx")
+
+    safe_name = _make_safe_filename(original_name)
+
+    # ВАЖНО: перемотать поток на начало на всякий случай
+    try:
+        file_storage.stream.seek(0)
+    except Exception:
+        pass
+
+    data = file_storage.read()
+    size_bytes = len(data)
+
+    if size_bytes == 0:
+        raise ValueError("Файл пустой или не удалось прочитать содержимое")
+
+    if ext == "txt":
+        # Можно заменить encoding при необходимости (например, 'cp1251')
+        text = data.decode("utf-8", errors="replace").strip()
+        if not text:
+            raise ValueError("Текстовый файл не содержит читаемого текста")
+        return text, size_bytes, safe_name
+
+    if ext == "docx":
+        doc = Document(io.BytesIO(data))
+        text = _docx_to_text(doc)
+        if not text:
+            raise ValueError("Не удалось извлечь текст из .docx (возможно, документ пустой)")
+        return text, size_bytes, safe_name
+
+    raise ValueError("Неподдерживаемый формат")#===Получение соединения с БД
 def get_db_connection():
     conn = sqlite3.connect('confidentiality.db')
     conn.row_factory = sqlite3.Row
@@ -743,52 +827,72 @@ def document(id_document):
     return render_template('document.html', document=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 #===Добавление нового документа
+
+
+
 @app.route('/new_document', methods=('GET', 'POST'))
 def new_document():
-
     if request.method == 'POST':
-        # добавление нового документа в БД после заполнения формы
         try:
-            name_document = request.form['name_document']
-            #===разбор загруженного файла
-            if 'text_document' in request.files:
-                file = request.files['text_document']
-                if file.filename != '':
-                    # Получение имени файла
-                    filename = secure_filename(file.filename)
-                    # Чтение файла
-                    SizeOfFile = request.content_length
-                    TextOfFile = file.read().decode('utf-8')
-            text_document = TextOfFile
-            size_document = SizeOfFile
-            link_document = filename
-            id_category_document = request.form['selected_id_category_document']
-            id_correspondent = request.form['selected_id_correspondent']
+            name_document = request.form.get('name_document', '').strip()
+            id_category_document = request.form.get('selected_id_category_document')
+            id_correspondent = request.form.get('selected_id_correspondent')
 
-            base_flag = 1
-        except ValueError:
-            flash('Некорректные значения')
-            base_flag = 0
-        if not base_flag > 0:
-            flash('Не все поля заполнены')
-        else:
-            if not (name_document and text_document and size_document and link_document):
-                flash('Не все поля заполнены')
-            else:
-                conn = get_db_connection()
-                cursor = conn.cursor()
-                cursor.execute("INSERT INTO 'documents' ('name_document', 'text_document', 'size_document', 'link_document', 'id_category_document', 'id_correspondent')  VALUES (?, ?, ?, ?, ?, ?)",
-                    (name_document, text_document, size_document, link_document, id_category_document, id_correspondent))
-                conn.commit()
-                conn.close()
-                return redirect('/documents')
+            if not name_document:
+                flash('Не указано наименование документа')
+                return redirect('/new_document')
 
-    # отрисовка формы
+            if not id_category_document or not id_correspondent:
+                flash('Не выбраны категория документа и/или корреспондент')
+                return redirect('/new_document')
+
+            if 'text_document' not in request.files:
+                flash('Файл не выбран')
+                return redirect('/new_document')
+
+            file = request.files['text_document']
+            if not file or not file.filename:
+                flash('Файл не выбран')
+                return redirect('/new_document')
+
+            # Извлекаем текст и размер. Ссылку/имя файла НЕ используем.
+            text_document, size_document, _ = _extract_text_from_upload(file)
+
+            # Ссылки на документ больше нет
+            link_document = ""
+
+        except ValueError as e:
+            flash(str(e))
+            return redirect('/new_document')
+        except Exception as e:
+            flash(f'Ошибка при обработке документа: {e}')
+            return redirect('/new_document')
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO documents (name_document, text_document, size_document, link_document, id_category_document, id_correspondent) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (name_document, text_document, size_document, link_document, id_category_document, id_correspondent)
+        )
+        conn.commit()
+        conn.close()
+
+        flash('Документ успешно добавлен')
+        return redirect('/documents')
+
+    # GET: отрисовка формы
     conn = get_db_connection()
-    postcd = conn.execute("""SELECT * FROM category_documents""").fetchall()
-    postc = conn.execute("""SELECT * FROM correspondents""").fetchall()
+    postcd = conn.execute("SELECT * FROM category_documents").fetchall()
+    postc = conn.execute("SELECT * FROM correspondents").fetchall()
     conn.close()
-    return render_template('new_document.html', category_documents=postcd, correspondents=postc, user_name=USER_NAME, user_rights=USER_RIGHTS)
+    return render_template(
+        'new_document.html',
+        category_documents=postcd,
+        correspondents=postc,
+        user_name=USER_NAME,
+        user_rights=USER_RIGHTS
+    )
 
 
 @app.route('/document/<int:id_document>/del', methods=('GET', 'POST'))
@@ -885,16 +989,17 @@ def edit_document(id_document):
             name_document = request.form['name_document']
             text_document = request.form['text_document']
             size_document = request.form['size_document']
-            link_document = request.form['link_document']
+          #  link_document = request.form['link_document']
             id_category_document = request.form['selected_id_category_document']
             id_correspondent = request.form['selected_id_correspondent']
+            link_document = ""
         except ValueError:
             flash('Некорректные значения')
             base_flag = 0
         if not base_flag > 0:
             flash('Не все поля заполнены')
         else:
-            if not (name_document and text_document and size_document and link_document):
+            if not (name_document and text_document and size_document):
                 flash('Не все поля заполнены')
             else:
                 conn = get_db_connection()
