@@ -24,7 +24,7 @@
                         <b>{{ document['name_document'] }}</b>
                      </a>
                  </td>
-                  <td>{{ document['text_document'] }}</td>
+                  <td>{{ document['text_document'] | truncate(80, True, '…') }}</td>
                   <td>{{ document['size_document'] }}</td>
                   {# <td><a class="link-secondary">{{ document['link_document'] }}</a></td> #}
                   <td>{{ document['category_document'] }}</td>

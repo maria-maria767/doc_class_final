@@ -12,7 +12,7 @@ import os
 import pprint
 from pathlib import Path
 import uuid
-
+import numpy as np
 
 app = Flask(__name__)
 #===Глобальные переменные
@@ -883,7 +883,9 @@ def new_document():
 
     # GET: отрисовка формы
     conn = get_db_connection()
-    postcd = conn.execute("SELECT * FROM category_documents").fetchall()
+    postcd = conn.execute(
+        "SELECT * FROM category_documents WHERE id_category_document IN (1, 2)"
+    ).fetchall()
     postc = conn.execute("SELECT * FROM correspondents").fetchall()
     conn.close()
     return render_template(
@@ -938,31 +940,40 @@ def check_document(id_document):
             flash('Для данного документа рекомендуемая категория уже была определена!')
         else:
             #===определение категории документа
-            model = tf.load_model("workmodel.h5")
+            model = tf.load_model("best_model.keras")
             doc_tensor = tf.tensor_create(text_document)
             results = tf.predict(model,doc_tensor)
-            res_id_category = results.index(max(results))
-            if res_id_category == 0:
-                category_text = "Конфиденциальный"
-            if res_id_category == 1:
-                category_text = "Внутренний"
-            if res_id_category == 2:
-                category_text = "Публичный"
-            if res_id_category == 3:
-                category_text = "Ограниченного доступа"
-            flash('Результаты анализа документа:')
-            ppp = str(round(results[0], 3))
-            res_msg = "Конфиденциальный: " + str(round(results[0],3)) + "; "
-            res_msg += "Внутренний: " + str(round(results[1], 3)) + "; "
-            res_msg += "Публичный: " + str(round(results[2], 3)) + "; "
-            res_msg += "Ограниченного доступа: " + str(round(results[3], 3)) + "."
-            flash(res_msg)
-            res_msg = "Выбрана категория: " + category_text
-            flash(res_msg)
+            r = np.array(results, dtype="float32").reshape(-1)
+
+            if r.size == 1:
+                # sigmoid: r[0] = P(class=1)
+                p1 = float(r[0])
+                p0 = 1.0 - p1
+            elif r.size >= 2:
+                # softmax: [P(class=0), P(class=1)]
+                p0 = float(r[0])
+                p1 = float(r[1])
+            else:
+                raise ValueError(f"Unexpected model output: {results}")
+
+
+            res_id_category = int(p1 > p0)
+
+
+            LABELS = {
+                0: "Не конфиденциальный",
+                1: "Конфиденциальный",
+            }
+            category_text = LABELS[res_id_category]
+
+            flash("Результаты анализа документа:")
+            flash(f"Не конфиденциальный: {p0:.3f}; Конфиденциальный: {p1:.3f}.")
+            flash("Выбрана категория: " + category_text)
 
             TESTED_DOCS.append(id_document)
 
-            id_category_document = res_id_category + 1
+            DB_CATEGORY_ID = {0: 2, 1: 1}
+            id_category_document = DB_CATEGORY_ID[res_id_category]
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute(
@@ -1013,7 +1024,9 @@ def edit_document(id_document):
     # отрисовка формы
     pos = get_document(id_document)
     conn = get_db_connection()
-    poscd = conn.execute("""SELECT * FROM category_documents""").fetchall()
+    poscd = conn.execute(
+    "SELECT * FROM category_documents WHERE id_category_document IN (1, 2)"
+).fetchall()
     posc = conn.execute("""SELECT * FROM correspondents""").fetchall()
     conn.close()
 
