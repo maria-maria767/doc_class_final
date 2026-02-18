@@ -6,4 +6,4 @@ tqdm
 docx
 werkzeug
 python-docx
-tensorflow
+tensorflow-cpu==2.16.1
