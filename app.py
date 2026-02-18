@@ -21,6 +21,13 @@ USER_RIGHTS = 3     # права пользователя
 TESTED_DOCS = []    # список протестированных документов по id
 ID_OWNER = 0        # id владельца сессии
 ALLOWED_EXTENSIONS = {"txt", "docx"}
+MODEL_PATH = "best_model.keras"
+MODEL = tf.load_model(MODEL_PATH)
+
+print("=== MODEL INPUTS ===")
+for i, inp in enumerate(MODEL.inputs):
+    print(i, inp.name, inp.shape, inp.dtype)
+print("Input names:", getattr(MODEL, "input_names", None))
 
 app.config['SECRET_KEY'] = b'my)secret)key'
 UPLOAD_FOLDER = 'requests'
@@ -108,7 +115,7 @@ def _extract_text_from_upload(file_storage):
 
     raise ValueError("Неподдерживаемый формат")#===Получение соединения с БД
 def get_db_connection():
-    conn = sqlite3.connect('confidentiality.db')
+    conn = sqlite3.connect('confidentiality_2classes.db')
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -914,56 +921,47 @@ def del_document(id_document):
     return render_template('del_document.html', document=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 @app.route('/document/<int:id_document>/check', methods=('GET', 'POST'))
-#===Изменение категории документа
 def check_document(id_document):
-    if request.method == 'POST':
-        global model
-        #model = load_model('workmodel.h5')
-        # Required for model to work
-        global graph
-        #graph = tf.get_default_graph()
+    # Всегда получаем документ (и для GET, и для POST)
+    doc = get_document(id_document)
 
-        doc = get_document(id_document)
+    if request.method == 'POST':
         name_document = doc['name_document']
         text_document = doc['text_document']
         size_document = doc['size_document']
-        link_document = doc['link_document']
         id_correspondent = doc['id_correspondent']
-        #try:
-        #    with open('output.txt', 'r', encoding='utf-8') as f:
-        #        content = f.read()
-        #except FileNotFoundError:
-        #    content = "Файл не найден"
+
+        # Если ты убрала "ссылку" вообще
+        link_document = ""
 
         global TESTED_DOCS
-        if (id_document in TESTED_DOCS):
+        if id_document in TESTED_DOCS:
             flash('Для данного документа рекомендуемая категория уже была определена!')
-        else:
-            #===определение категории документа
-            model = tf.load_model("best_model.keras")
-            doc_tensor = tf.tensor_create(text_document)
-            results = tf.predict(model,doc_tensor)
+            return redirect('/documents')  # <-- ВАЖНО: return есть
+
+        try:
+            # === предсказание
+            x_text = tf.make_input_text(text_document)  # (1, 380) int32
+            x_pos = tf.make_input_pos(text_document)  # (1, 17) float32 (пока нули)
+
+            # 2) Делаем предсказание
+            results = tf.predict(MODEL, x_text, x_pos)
+
+            # 3) дальше твой код как был
             r = np.array(results, dtype="float32").reshape(-1)
 
             if r.size == 1:
-                # sigmoid: r[0] = P(class=1)
                 p1 = float(r[0])
                 p0 = 1.0 - p1
             elif r.size >= 2:
-                # softmax: [P(class=0), P(class=1)]
                 p0 = float(r[0])
                 p1 = float(r[1])
             else:
                 raise ValueError(f"Unexpected model output: {results}")
 
-
             res_id_category = int(p1 > p0)
 
-
-            LABELS = {
-                0: "Не конфиденциальный",
-                1: "Конфиденциальный",
-            }
+            LABELS = {0: "Не конфиденциальный", 1: "Конфиденциальный"}
             category_text = LABELS[res_id_category]
 
             flash("Результаты анализа документа:")
@@ -974,21 +972,31 @@ def check_document(id_document):
 
             DB_CATEGORY_ID = {0: 2, 1: 1}
             id_category_document = DB_CATEGORY_ID[res_id_category]
+
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute(
-                "UPDATE 'documents' set 'name_document'=?, 'text_document'=?, 'size_document'=?, 'link_document'=?, 'id_category_document'=?,'id_correspondent'=?  WHERE id_document = ?",
-                (name_document, text_document, size_document, link_document, id_category_document, id_correspondent,
-                id_document))
+                "UPDATE documents SET name_document=?, text_document=?, size_document=?, link_document=?, "
+                "id_category_document=?, id_correspondent=? WHERE id_document=?",
+                (name_document, text_document, size_document, link_document,
+                 id_category_document, id_correspondent, id_document)
+            )
             conn.commit()
             conn.close()
-        return redirect('/documents')
 
-    # отрисовка формы
-    pos = get_document(id_document)
-    tt=pos['link_document']
-    return render_template('check_document.html', document=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
+        except Exception as e:
+            flash(f"Ошибка при анализе документа: {e}")
+            return redirect('/documents')  # <-- тоже обязательно return
 
+        return redirect('/documents')  # <-- после POST всегда редирект
+
+    # GET: обязательно возвращаем страницу
+    return render_template(
+        'check_document.html',
+        document=doc,
+        user_name=USER_NAME,
+        user_rights=USER_RIGHTS
+    )
 
 
 @app.route('/document/<int:id_document>/update', methods=('GET', 'POST'))
