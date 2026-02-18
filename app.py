@@ -1208,4 +1208,4 @@ def profile():
     return render_template('employee.html', employee=pos, user_name=USER_NAME, user_rights=USER_RIGHTS)
 
 if __name__ == '__main__':
-    app.run(port=10000)
+    app.run()
