@@ -7,8 +7,13 @@ from flask import Flask, render_template, redirect, request, flash, request, sen
 from flask import request
 from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
-from utils import tf_functions as tf
 import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["TF_NUM_INTRAOP_THREADS"] = "1"
+os.environ["TF_NUM_INTEROP_THREADS"] = "1"
+from utils import tf_functions as tf
 import pprint
 from pathlib import Path
 import uuid
