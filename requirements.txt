@@ -6,3 +6,4 @@ tqdm
 docx
 werkzeug
 python-docx
+tensorflow
