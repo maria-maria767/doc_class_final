@@ -3,7 +3,6 @@ gunicorn
 numpy
 pandas
 tqdm
-docx
 werkzeug
 python-docx
 tensorflow
